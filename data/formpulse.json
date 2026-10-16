@@ -1,6 +1,116 @@
 {
   "forms": [
     {
+      "id": "fp_1792164883998_nnprl",
+      "slug": "product-feedback-suggestions",
+      "title": "Product Feedback & Suggestions",
+      "description": "Gather feedback from active users on features and performance.",
+      "isPublished": true,
+      "createdAt": "2026-10-16T15:34:43.999Z",
+      "updatedAt": "2026-10-16T15:34:43.999Z",
+      "theme": {
+        "primaryColor": "#4f46e5",
+        "backgroundColor": "#ffffff",
+        "botName": "FeedbackBot",
+        "botAvatar": "✨",
+        "welcomeMessage": "Hey! We'd love your candid thoughts on how we can improve.",
+        "completionMessage": "Thanks for sharing your thoughts! We read every submission."
+      },
+      "questions": [
+        {
+          "id": "q_1_1792164883931",
+          "type": "text",
+          "title": "What is your name?",
+          "placeholder": "Alex Johnson",
+          "required": true,
+          "order": 1
+        },
+        {
+          "id": "q_2_1792164883931",
+          "type": "email",
+          "title": "What email should we reach you at?",
+          "placeholder": "alex@example.com",
+          "required": true,
+          "order": 2
+        },
+        {
+          "id": "q_3_1792164883931",
+          "type": "multiple_choice",
+          "title": "How satisfied are you with our product?",
+          "options": [
+            "🌟 Very Satisfied",
+            "👍 Somewhat Satisfied",
+            "👎 Needs Improvement"
+          ],
+          "required": true,
+          "order": 3
+        },
+        {
+          "id": "q_4_1792164883931",
+          "type": "yes_no",
+          "title": "Would you be open to a 10-minute user feedback call with our team?",
+          "required": true,
+          "order": 4
+        }
+      ],
+      "submissionCount": 0
+    },
+    {
+      "id": "fp_1792164883592_453hr",
+      "slug": "inbound-lead-qualification",
+      "title": "Inbound Lead Qualification",
+      "description": "Capture sales inquiries directly from website visitors.",
+      "isPublished": true,
+      "createdAt": "2026-10-16T15:34:43.592Z",
+      "updatedAt": "2026-10-16T15:34:43.592Z",
+      "theme": {
+        "primaryColor": "#0284c7",
+        "backgroundColor": "#ffffff",
+        "botName": "SalesBot",
+        "botAvatar": "💼",
+        "welcomeMessage": "Welcome! Let's get you connected with the right specialist.",
+        "completionMessage": "Got it! Our enterprise team will follow up shortly."
+      },
+      "questions": [
+        {
+          "id": "q_1_1792164883220",
+          "type": "text",
+          "title": "What is your name and company name?",
+          "placeholder": "Jane Doe at Acme Inc",
+          "required": true,
+          "order": 1
+        },
+        {
+          "id": "q_2_1792164883220",
+          "type": "email",
+          "title": "What is your work email?",
+          "placeholder": "jane@acme.com",
+          "required": true,
+          "order": 2
+        },
+        {
+          "id": "q_3_1792164883220",
+          "type": "multiple_choice",
+          "title": "What is your project budget?",
+          "options": [
+            "Under $5,000",
+            "$5,000 - $20,000",
+            "$20,000+ Enterprise"
+          ],
+          "required": true,
+          "order": 3
+        },
+        {
+          "id": "q_4_1792164883220",
+          "type": "yes_no",
+          "title": "Are you ready to start within the next month?",
+          "required": true,
+          "order": 4
+        }
+      ],
+      "submissionCount": 0
+    },
+    {
       "id": "fp_customer_feedback",
       "slug": "customer-feedback",
       "title": "Customer Experience & Feedback",

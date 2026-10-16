@@ -924,10 +924,13 @@ export default function FormBuilder({
             {/* Embedded Live Preview Widget */}
             <div className="rounded-2xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
               <ChatbotWidget
-                key={JSON.stringify({
-                  theme: form.theme,
-                  qCount: form.questions.length,
-                })}
+                key={
+                  form.questions.map((q) => q.id + q.title).join("-") +
+                  form.theme.primaryColor +
+                  form.theme.botName +
+                  form.theme.botAvatar +
+                  form.theme.welcomeMessage
+                }
                 form={form}
                 isPreview={true}
                 mode="card"

@@ -37,17 +37,40 @@ export default function ChatbotWidget({
   onClose,
   onSubmitSuccess,
 }: ChatbotWidgetProps) {
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: "msg_welcome",
-      sender: "bot",
-      text:
-        form.theme.welcomeMessage ||
-        "Hi there! 👋 Welcome to FormPulse. Let's get started!",
-      timestamp: "Just now",
-    },
-  ]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(-1);
+  const primaryColor = form?.theme?.primaryColor || "#4f46e5";
+  const botName = form?.theme?.botName || "PulseBot";
+  const botAvatar = form?.theme?.botAvatar || "✨";
+  const sortedQuestions = [...(form?.questions || [])].sort(
+    (a, b) => a.order - b.order
+  );
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const msgs: Message[] = [
+      {
+        id: "msg_welcome",
+        sender: "bot",
+        text:
+          form?.theme?.welcomeMessage ||
+          "Hi there! 👋 Welcome to FormPulse. Let's get started!",
+        timestamp: "Just now",
+      },
+    ];
+    const sorted = [...(form?.questions || [])].sort((a, b) => a.order - b.order);
+    if (sorted.length > 0) {
+      msgs.push({
+        id: `msg_q_${sorted[0].id}`,
+        sender: "bot",
+        text: sorted[0].title,
+        timestamp: "Just now",
+        questionId: sorted[0].id,
+      });
+    }
+    return msgs;
+  });
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(() =>
+    (form?.questions || []).length > 0 ? 0 : -1
+  );
   const [inputValue, setInputValue] = useState<string>("");
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -55,15 +78,8 @@ export default function ChatbotWidget({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const primaryColor = form?.theme?.primaryColor || "#4f46e5";
-  const botName = form?.theme?.botName || "PulseBot";
-  const botAvatar = form?.theme?.botAvatar || "✨";
-  const sortedQuestions = [...(form?.questions || [])].sort(
-    (a, b) => a.order - b.order
-  );
 
   const totalQuestions = sortedQuestions.length;
   const currentQuestion: Question | undefined =
@@ -80,14 +96,16 @@ export default function ChatbotWidget({
         )
       : 100;
 
-  // Auto scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Local container scroll ONLY (does NOT hijack page/window scroll)
+  const scrollToBottom = useCallback(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping, validationError]);
+  }, [messages, isTyping, validationError, scrollToBottom]);
 
   // Focus input when moving to a new text/email question
   useEffect(() => {
@@ -96,9 +114,10 @@ export default function ChatbotWidget({
       (currentQuestion.type === "text" || currentQuestion.type === "email") &&
       !isTyping
     ) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [currentQuestionIndex, isTyping, currentQuestion]);
 
@@ -166,74 +185,36 @@ export default function ChatbotWidget({
     [form.id, form.theme.completionMessage, isPreview, onSubmitSuccess, primaryColor, sortedQuestions.length]
   );
 
-  const askQuestion = useCallback(
-    (index: number) => {
-      if (index >= sortedQuestions.length) {
-        completeForm(answers);
-        return;
-      }
-
-      const q = sortedQuestions[index];
-      setCurrentQuestionIndex(index);
-      setIsTyping(true);
-
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg_q_${q.id}_${Date.now()}`,
-            sender: "bot",
-            text: q.title,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            questionId: q.id,
-          },
-        ]);
-      }, 450);
-    },
-    [answers, completeForm, sortedQuestions]
-  );
-
   const resetChat = useCallback(() => {
     setAnswers({});
     setIsCompleted(false);
     setValidationError(null);
     setShowSummary(false);
+    setCurrentQuestionIndex(sortedQuestions.length > 0 ? 0 : -1);
 
-    const welcomeText =
-      form.theme.welcomeMessage ||
-      "Hi there! 👋 Welcome to FormPulse. Let's get started!";
-
-    setMessages([
+    const msgs: Message[] = [
       {
-        id: "msg_welcome_reset",
+        id: `msg_welcome_${Date.now()}`,
         sender: "bot",
-        text: welcomeText,
+        text:
+          form.theme.welcomeMessage ||
+          "Hi there! 👋 Welcome to FormPulse. Let's get started!",
         timestamp: "Just now",
       },
-    ]);
+    ];
 
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      if (sortedQuestions.length > 0) {
-        askQuestion(0);
-      }
-    }, 600);
-  }, [askQuestion, form.theme.welcomeMessage, sortedQuestions.length]);
+    if (sortedQuestions.length > 0) {
+      msgs.push({
+        id: `msg_q_${sortedQuestions[0].id}_${Date.now()}`,
+        sender: "bot",
+        text: sortedQuestions[0].title,
+        timestamp: "Just now",
+        questionId: sortedQuestions[0].id,
+      });
+    }
 
-  // Initial question trigger after mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (sortedQuestions.length > 0) {
-        askQuestion(0);
-      }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [form.id, askQuestion, sortedQuestions.length]);
+    setMessages(msgs);
+  }, [form.theme.welcomeMessage, sortedQuestions]);
 
   const validateAnswer = (
     q: Question,
@@ -293,7 +274,26 @@ export default function ChatbotWidget({
 
     const nextIndex = currentQuestionIndex + 1;
     if (nextIndex < sortedQuestions.length) {
-      askQuestion(nextIndex);
+      const nextQ = sortedQuestions[nextIndex];
+      setCurrentQuestionIndex(nextIndex);
+      setIsTyping(true);
+
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `msg_q_${nextQ.id}_${Date.now()}`,
+            sender: "bot",
+            text: nextQ.title,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            questionId: nextQ.id,
+          },
+        ]);
+      }, 400);
     } else {
       await completeForm(updatedAnswers);
     }
@@ -314,7 +314,7 @@ export default function ChatbotWidget({
       ? "flex flex-col h-screen max-w-3xl mx-auto bg-white dark:bg-zinc-950 border-x border-zinc-200 dark:border-zinc-800 shadow-xl"
       : mode === "embedded"
       ? "flex flex-col h-[580px] w-full max-w-md bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden"
-      : "flex flex-col h-[640px] w-full bg-white dark:bg-zinc-950 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden";
+      : "flex flex-col h-[540px] w-full bg-white dark:bg-zinc-950 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden";
 
   return (
     <div className={containerClasses}>
@@ -381,8 +381,11 @@ export default function ChatbotWidget({
         />
       </div>
 
-      {/* Chat Messages List */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+      {/* Chat Messages List (Container has dedicated ref for non-intrusive scrolling) */}
+      <main
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4"
+      >
         {messages.map((msg) => {
           const isBot = msg.sender === "bot";
           return (
@@ -539,8 +542,6 @@ export default function ChatbotWidget({
             </button>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </main>
 
       {/* Interactive Answer Input Area */}
