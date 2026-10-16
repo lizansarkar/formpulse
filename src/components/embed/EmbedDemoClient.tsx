@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { Form } from "@/types/form";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Code,
   Check,
   ExternalLink,
-  Layers,
   ArrowRight,
   ShieldCheck,
   Zap,
-  BarChart3,
   Globe,
   Sparkles,
 } from "lucide-react";
@@ -25,14 +24,11 @@ export default function EmbedDemoClient({
   currentForm,
   allForms,
 }: EmbedDemoClientProps) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [baseUrl, setBaseUrl] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setBaseUrl(window.location.origin);
-    }
-  }, []);
+  const [baseUrl] = useState(() =>
+    typeof window !== "undefined" ? window.location.origin : ""
+  );
 
   const embedCode = `<script\n  src="${baseUrl || "https://formpulse.app"}/embed.js"\n  data-form-id="${currentForm.id}"\n  data-color="${currentForm.theme.primaryColor}"\n  defer\n></script>`;
 
@@ -58,7 +54,8 @@ export default function EmbedDemoClient({
     const existingFrames = document.querySelectorAll(".fp-widget-frame-wrapper");
     existingFrames.forEach((el) => el.remove());
 
-    (window as any).__FORMPULSE_INITIALIZED__ = false;
+    const win = window as unknown as { __FORMPULSE_INITIALIZED__?: boolean };
+    win.__FORMPULSE_INITIALIZED__ = false;
 
     const script = document.createElement("script");
     script.id = "formpulse-demo-script";
@@ -76,7 +73,7 @@ export default function EmbedDemoClient({
       if (style) style.remove();
       const frames = document.querySelectorAll(".fp-widget-frame-wrapper");
       frames.forEach((el) => el.remove());
-      (window as any).__FORMPULSE_INITIALIZED__ = false;
+      win.__FORMPULSE_INITIALIZED__ = false;
     };
   }, [currentForm.id, currentForm.theme.primaryColor]);
 
@@ -99,7 +96,7 @@ export default function EmbedDemoClient({
           <select
             value={currentForm.id}
             onChange={(e) => {
-              window.location.href = `/embed-demo/${e.target.value}`;
+              router.push(`/embed-demo/${e.target.value}`);
             }}
             className="px-2.5 py-1.5 rounded-lg bg-indigo-900/60 border border-indigo-700 text-xs text-indigo-100 focus:outline-none"
           >

@@ -10,13 +10,8 @@ import {
   Eye,
   ExternalLink,
   MessageSquare,
-  Clock,
   Sparkles,
-  CheckCircle2,
   X,
-  FileSpreadsheet,
-  Globe,
-  Code,
   Edit,
 } from "lucide-react";
 

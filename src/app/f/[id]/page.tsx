@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getFormByIdOrSlug } from "@/lib/storage";
@@ -29,7 +29,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function PublicFormPage({ params }: PageProps) {
+async function PublicFormContent({ params }: PageProps) {
   const { id } = await params;
   const form = await getFormByIdOrSlug(id);
 
@@ -69,5 +69,19 @@ export default async function PublicFormPage({ params }: PageProps) {
     <div className="min-h-screen bg-zinc-100/60 dark:bg-black py-0 md:py-8 sm:px-4 flex flex-col justify-center">
       <ChatbotWidget form={form} mode="fullscreen" />
     </div>
+  );
+}
+
+export default function PublicFormPage({ params }: PageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white text-sm">
+          Loading Interactive Form...
+        </div>
+      }
+    >
+      <PublicFormContent params={params} />
+    </Suspense>
   );
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getFormByIdOrSlug, getSubmissionsByFormId } from "@/lib/storage";
 import ResponsesClient from "@/components/dashboard/ResponsesClient";
@@ -24,7 +24,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function FormResponsesPage({ params }: ResponsesPageProps) {
+async function FormResponsesContent({ params }: ResponsesPageProps) {
   const { id } = await params;
   const form = await getFormByIdOrSlug(id);
 
@@ -35,4 +35,18 @@ export default async function FormResponsesPage({ params }: ResponsesPageProps) 
   const submissions = await getSubmissionsByFormId(form.id);
 
   return <ResponsesClient form={form} initialSubmissions={submissions} />;
+}
+
+export default function FormResponsesPage({ params }: ResponsesPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white text-sm">
+          Loading Responses...
+        </div>
+      }
+    >
+      <FormResponsesContent params={params} />
+    </Suspense>
+  );
 }

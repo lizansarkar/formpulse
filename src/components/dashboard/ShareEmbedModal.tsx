@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Form } from "@/types/form";
 import {
   X,
@@ -28,13 +28,9 @@ export default function ShareEmbedModal({
     "script"
   );
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-  }, []);
+  const [origin] = useState(() =>
+    typeof window !== "undefined" ? window.location.origin : ""
+  );
 
   if (!isOpen || !form) return null;
 

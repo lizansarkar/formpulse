@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Question } from "@/types/form";
 import {
   Send,
@@ -9,7 +9,6 @@ import {
   RotateCcw,
   Sparkles,
   ArrowRight,
-  Bot,
   User,
   ChevronDown,
   ChevronUp,
@@ -28,7 +27,7 @@ interface ChatbotWidgetProps {
   isPreview?: boolean;
   mode?: "fullscreen" | "card" | "embedded";
   onClose?: () => void;
-  onSubmitSuccess?: (answers: Record<string, any>) => void;
+  onSubmitSuccess?: (answers: Record<string, unknown>) => void;
 }
 
 export default function ChatbotWidget({
@@ -38,12 +37,20 @@ export default function ChatbotWidget({
   onClose,
   onSubmitSuccess,
 }: ChatbotWidgetProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    {
+      id: "msg_welcome",
+      sender: "bot",
+      text:
+        form.theme.welcomeMessage ||
+        "Hi there! 👋 Welcome to FormPulse. Let's get started!",
+      timestamp: "Just now",
+    },
+  ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(-1);
   const [inputValue, setInputValue] = useState<string>("");
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState<boolean>(false);
@@ -93,14 +100,104 @@ export default function ChatbotWidget({
         inputRef.current?.focus();
       }, 100);
     }
-  }, [currentQuestionIndex, isTyping]);
+  }, [currentQuestionIndex, isTyping, currentQuestion]);
 
-  // Initial welcome message
-  useEffect(() => {
-    resetChat();
-  }, [form.id]);
+  const completeForm = useCallback(
+    async (finalAnswers: Record<string, unknown>) => {
+      setCurrentQuestionIndex(sortedQuestions.length);
+      setIsTyping(true);
 
-  const resetChat = () => {
+      try {
+        if (!isPreview) {
+          await fetch(`/api/forms/${form.id}/submissions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answers: finalAnswers,
+              metadata: {
+                completedAt: new Date().toISOString(),
+                userAgent:
+                  typeof window !== "undefined" ? navigator.userAgent : "",
+              },
+            }),
+          });
+        }
+
+        onSubmitSuccess?.(finalAnswers);
+      } catch (err) {
+        console.error("Submission failed:", err);
+      } finally {
+        setIsTyping(false);
+        setIsCompleted(true);
+
+        const completionText =
+          form.theme.completionMessage ||
+          "Thank you! Your response has been securely saved.";
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `msg_complete_${Date.now()}`,
+            sender: "bot",
+            text: completionText,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          },
+        ]);
+
+        // Fire confetti celebration
+        try {
+          if (typeof window !== "undefined") {
+            const confetti = (await import("canvas-confetti")).default;
+            confetti({
+              particleCount: 90,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: [primaryColor, "#10b981", "#3b82f6", "#f59e0b", "#ec4899"],
+            });
+          }
+        } catch {
+          // Graceful fallback
+        }
+      }
+    },
+    [form.id, form.theme.completionMessage, isPreview, onSubmitSuccess, primaryColor, sortedQuestions.length]
+  );
+
+  const askQuestion = useCallback(
+    (index: number) => {
+      if (index >= sortedQuestions.length) {
+        completeForm(answers);
+        return;
+      }
+
+      const q = sortedQuestions[index];
+      setCurrentQuestionIndex(index);
+      setIsTyping(true);
+
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `msg_q_${q.id}_${Date.now()}`,
+            sender: "bot",
+            text: q.title,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            questionId: q.id,
+          },
+        ]);
+      }, 450);
+    },
+    [answers, completeForm, sortedQuestions]
+  );
+
+  const resetChat = useCallback(() => {
     setAnswers({});
     setIsCompleted(false);
     setValidationError(null);
@@ -112,13 +209,10 @@ export default function ChatbotWidget({
 
     setMessages([
       {
-        id: `msg_welcome_${Date.now()}`,
+        id: "msg_welcome_reset",
         sender: "bot",
         text: welcomeText,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        timestamp: "Just now",
       },
     ]);
 
@@ -129,35 +223,17 @@ export default function ChatbotWidget({
         askQuestion(0);
       }
     }, 600);
-  };
+  }, [askQuestion, form.theme.welcomeMessage, sortedQuestions.length]);
 
-  const askQuestion = (index: number) => {
-    if (index >= sortedQuestions.length) {
-      completeForm(answers);
-      return;
-    }
-
-    const q = sortedQuestions[index];
-    setCurrentQuestionIndex(index);
-    setIsTyping(true);
-
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg_q_${q.id}_${Date.now()}`,
-          sender: "bot",
-          text: q.title,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          questionId: q.id,
-        },
-      ]);
-    }, 450);
-  };
+  // Initial question trigger after mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (sortedQuestions.length > 0) {
+        askQuestion(0);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.id, askQuestion, sortedQuestions.length]);
 
   const validateAnswer = (
     q: Question,
@@ -220,68 +296,6 @@ export default function ChatbotWidget({
       askQuestion(nextIndex);
     } else {
       await completeForm(updatedAnswers);
-    }
-  };
-
-  const completeForm = async (finalAnswers: Record<string, any>) => {
-    setCurrentQuestionIndex(sortedQuestions.length);
-    setIsTyping(true);
-    setIsSubmitting(true);
-
-    try {
-      if (!isPreview) {
-        await fetch(`/api/forms/${form.id}/submissions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            answers: finalAnswers,
-            metadata: {
-              completedAt: new Date().toISOString(),
-              userAgent: typeof window !== "undefined" ? navigator.userAgent : "",
-            },
-          }),
-        });
-      }
-
-      onSubmitSuccess?.(finalAnswers);
-    } catch (err) {
-      console.error("Submission failed:", err);
-    } finally {
-      setIsSubmitting(false);
-      setIsTyping(false);
-      setIsCompleted(true);
-
-      const completionText =
-        form.theme.completionMessage ||
-        "Thank you! Your response has been securely saved.";
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg_complete_${Date.now()}`,
-          sender: "bot",
-          text: completionText,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ]);
-
-      // Fire confetti celebration
-      try {
-        if (typeof window !== "undefined") {
-          const confetti = (await import("canvas-confetti")).default;
-          confetti({
-            particleCount: 90,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: [primaryColor, "#10b981", "#3b82f6", "#f59e0b", "#ec4899"],
-          });
-        }
-      } catch {
-        // Fallback gracefully if confetti fails
-      }
     }
   };
 
@@ -495,7 +509,9 @@ export default function ChatbotWidget({
                         ? ans
                           ? "Yes"
                           : "No"
-                        : ans || "—";
+                        : ans
+                        ? String(ans)
+                        : "—";
                     return (
                       <div
                         key={q.id}

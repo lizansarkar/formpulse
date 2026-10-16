@@ -5,22 +5,14 @@ import { Form } from "@/types/form";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import Link from "next/link";
 import {
-  Sparkles,
   ArrowRight,
   Code,
-  Zap,
-  ShieldCheck,
-  BarChart3,
   Globe,
   CheckCircle2,
   Sliders,
   MessageSquare,
   Bot,
-  Play,
-  Layers,
-  ChevronRight,
-  Star,
-  ExternalLink,
+  BarChart3,
 } from "lucide-react";
 
 interface LandingClientProps {

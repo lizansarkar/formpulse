@@ -12,16 +12,13 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  Eye,
   Settings,
   Sparkles,
   ExternalLink,
   Code,
   Check,
   Palette,
-  Bot,
   AlertCircle,
-  HelpCircle,
   Type,
   Mail,
   List,
@@ -45,57 +42,54 @@ const COLOR_PRESETS = [
 
 const AVATAR_PRESETS = ["✨", "🤖", "💼", "🚀", "💬", "⚡", "🎯", "🌟", "💡"];
 
+const DEFAULT_BLANK_FORM: Form = {
+  id: "",
+  slug: "",
+  title: "Untitled Interactive Form",
+  description: "A modern conversational chatbot form.",
+  isPublished: true,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+  theme: {
+    primaryColor: "#4f46e5",
+    botName: "PulseBot",
+    botAvatar: "✨",
+    welcomeMessage:
+      "Hi there! 👋 Welcome to our form. We'd love to ask you a few quick questions.",
+    completionMessage:
+      "Thank you! Your response has been securely recorded. 🎉",
+  },
+  questions: [
+    {
+      id: "q_init_1",
+      type: "text",
+      title: "To get started, what is your name?",
+      placeholder: "e.g. Alex Morgan",
+      required: true,
+      order: 1,
+    },
+    {
+      id: "q_init_2",
+      type: "email",
+      title: "Great! What is your email address?",
+      placeholder: "alex@example.com",
+      required: true,
+      order: 2,
+    },
+  ],
+  submissionCount: 0,
+};
+
 export default function FormBuilder({
   initialForm,
   isNew = false,
 }: FormBuilderProps) {
   const router = useRouter();
 
-  const [form, setForm] = useState<Form>(
-    initialForm || {
-      id: "",
-      slug: "",
-      title: "Untitled Interactive Form",
-      description: "A modern conversational chatbot form.",
-      isPublished: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      theme: {
-        primaryColor: "#4f46e5",
-        botName: "PulseBot",
-        botAvatar: "✨",
-        welcomeMessage:
-          "Hi there! 👋 Welcome to our form. We'd love to ask you a few quick questions.",
-        completionMessage:
-          "Thank you! Your response has been securely recorded. 🎉",
-      },
-      questions: [
-        {
-          id: `q_${Date.now()}_1`,
-          type: "text",
-          title: "To get started, what is your name?",
-          placeholder: "e.g. Alex Morgan",
-          required: true,
-          order: 1,
-        },
-        {
-          id: `q_${Date.now()}_2`,
-          type: "email",
-          title: "Great! What is your email address?",
-          placeholder: "alex@example.com",
-          required: true,
-          order: 2,
-        },
-      ],
-      submissionCount: 0,
-    }
-  );
+  const [form, setForm] = useState<Form>(() => initialForm || DEFAULT_BLANK_FORM);
 
   const [activeTab, setActiveTab] = useState<"questions" | "theme" | "settings">(
     "questions"
-  );
-  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
-    "desktop"
   );
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -104,7 +98,8 @@ export default function FormBuilder({
 
   // Question editing handlers
   const addQuestion = (type: QuestionType) => {
-    const newId = `q_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const timestamp = Date.now();
+    const newId = `q_${timestamp}_${Math.random().toString(36).substring(2, 6)}`;
     const newOrder = form.questions.length + 1;
 
     let defaultTitle = "What is your answer?";
@@ -265,8 +260,9 @@ export default function FormBuilder({
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to save form");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save form";
+      setErrorMessage(msg);
     } finally {
       setIsSaving(false);
     }

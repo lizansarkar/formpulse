@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getFormByIdOrSlug } from "@/lib/storage";
 import FormBuilder from "@/components/builder/FormBuilder";
@@ -23,7 +23,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function EditFormPage({ params }: EditFormPageProps) {
+async function EditFormContent({ params }: EditFormPageProps) {
   const { id } = await params;
   const form = await getFormByIdOrSlug(id);
 
@@ -32,4 +32,18 @@ export default async function EditFormPage({ params }: EditFormPageProps) {
   }
 
   return <FormBuilder initialForm={form} isNew={false} />;
+}
+
+export default function EditFormPage({ params }: EditFormPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white text-sm">
+          Loading Form Builder...
+        </div>
+      }
+    >
+      <EditFormContent params={params} />
+    </Suspense>
+  );
 }

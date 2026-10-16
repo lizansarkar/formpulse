@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import FormBuilder from "@/components/builder/FormBuilder";
 
 export const metadata = {
@@ -7,5 +7,15 @@ export const metadata = {
 };
 
 export default function NewFormBuilderPage() {
-  return <FormBuilder isNew={true} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white text-sm">
+          Loading Form Builder...
+        </div>
+      }
+    >
+      <FormBuilder isNew={true} />
+    </Suspense>
+  );
 }

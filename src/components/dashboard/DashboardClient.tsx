@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Form, FormStats } from "@/types/form";
+import { Form, FormStats, Question } from "@/types/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ShareEmbedModal from "@/components/dashboard/ShareEmbedModal";
@@ -14,14 +14,10 @@ import {
   Code,
   Edit,
   Trash2,
-  CheckCircle2,
-  Clock,
   Sparkles,
   Layers,
-  ArrowUpRight,
   TrendingUp,
   Globe,
-  SlidersHorizontal,
   Flame,
 } from "lucide-react";
 
@@ -107,7 +103,12 @@ export default function DashboardClient({
   const handleCreateFromTemplate = async (templateName: string) => {
     setIsCreating(true);
 
-    let templatePayload: any = {
+    let templatePayload: {
+      title: string;
+      description: string;
+      theme?: Form["theme"];
+      questions?: Question[];
+    } = {
       title: "Interactive Form",
       description: "A modern conversational chatbot form.",
     };
