@@ -1,0 +1,47 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Form {
+  id                String       @id @default(uuid())
+  slug              String       @unique
+  title             String
+  description       String?
+  isPublished       Boolean      @default(true)
+  botName           String       @default("PulseBot")
+  botAvatar         String       @default("🤖")
+  welcomeMessage    String       @default("Hi there! 👋 Welcome. Let's get started.")
+  completionMessage String       @default("Thank you! Your response has been recorded.")
+  primaryColor      String       @default("#6366f1")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  questions         Question[]
+  submissions       Submission[]
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type        String   // text, email, multiple_choice, yes_no
+  title       String
+  placeholder String?
+  required    Boolean  @default(true)
+  options     String?  // JSON string array for choices
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Submission {
+  id        String   @id @default(uuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  answers   String   // JSON string of user answers { [questionId]: value }
+  metadata  String?  // JSON string
+  createdAt DateTime @default(now())
+}
