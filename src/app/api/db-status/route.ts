@@ -3,6 +3,7 @@ import { getPrismaClient, isDatabaseConfigured } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    console.log("[db-status] DATABASE_URL raw:", process.env.DATABASE_URL);
     if (!isDatabaseConfigured) {
       return NextResponse.json({
         status: "local_storage_active",
@@ -15,7 +16,7 @@ export async function GET() {
       });
     }
 
-    const prisma = await getPrismaClient();
+    const prisma = getPrismaClient();
     if (!prisma) {
       return NextResponse.json({
         status: "client_unavailable",
@@ -25,13 +26,19 @@ export async function GET() {
       });
     }
 
-    // Ping PostgreSQL
+    // Ping PostgreSQL and get counts
     await prisma.$queryRaw`SELECT 1`;
+    const formCount = await prisma.form.count();
+    const submissionCount = await prisma.submission.count();
 
     return NextResponse.json({
       status: "connected",
       databaseConfigured: true,
-      provider: "postgresql",
+      provider: "postgresql (Supabase)",
+      counts: {
+        forms: formCount,
+        submissions: submissionCount,
+      },
       message: "Successfully connected to PostgreSQL database via Prisma.",
     });
   } catch (error) {

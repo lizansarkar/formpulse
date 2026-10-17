@@ -26,11 +26,15 @@ export default function EmbedDemoClient({
 }: EmbedDemoClientProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [baseUrl] = useState(() =>
-    typeof window !== "undefined" ? window.location.origin : ""
-  );
+  const [baseUrl, setBaseUrl] = useState("https://formpulse.app");
 
-  const embedCode = `<script\n  src="${baseUrl || "https://formpulse.app"}/embed.js"\n  data-form-id="${currentForm.id}"\n  data-color="${currentForm.theme.primaryColor}"\n  defer\n></script>`;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBaseUrl(window.location.origin);
+    }
+  }, []);
+
+  const embedCode = `<script\n  src="${baseUrl}/embed.js"\n  data-form-id="${currentForm.id}"\n  data-color="${currentForm.theme.primaryColor}"\n  defer\n></script>`;
 
   const copyCode = () => {
     if (typeof navigator !== "undefined") {
@@ -230,7 +234,10 @@ export default function EmbedDemoClient({
           </div>
 
           <div className="relative">
-            <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-mono overflow-x-auto leading-relaxed">
+            <pre
+              suppressHydrationWarning
+              className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-mono overflow-x-auto leading-relaxed"
+            >
               {embedCode}
             </pre>
             <button

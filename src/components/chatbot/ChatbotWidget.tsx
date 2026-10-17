@@ -20,6 +20,7 @@ interface Message {
   text: string;
   timestamp: string;
   questionId?: string;
+  isAiReaction?: boolean;
 }
 
 interface ChatbotWidgetProps {
@@ -273,28 +274,73 @@ export default function ChatbotWidget({
     setInputValue("");
 
     const nextIndex = currentQuestionIndex + 1;
+    setIsTyping(true);
+
+    // Call Gemini AI concierge in background for realistic conversational reaction
+    let aiReaction: string | null = null;
+    try {
+      const aiPromise = fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userMessage: displayValue,
+          currentQuestion: currentQuestion.title,
+          formTitle: form.title,
+          formDescription: form.description,
+          answersSoFar: updatedAnswers,
+        }),
+      }).then((r) => r.json());
+
+      // Ultra-snappy response: Don't stall user longer than 1100ms
+      const timeoutPromise = new Promise<{ reply: null }>((resolve) =>
+        setTimeout(() => resolve({ reply: null }), 1100)
+      );
+
+      const res = await Promise.race([aiPromise, timeoutPromise]);
+      if (res && res.reply) {
+        aiReaction = res.reply;
+      }
+    } catch {
+      // Graceful fallback
+    }
+
+    if (aiReaction) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `msg_ai_${Date.now()}`,
+          sender: "bot",
+          text: aiReaction!,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          isAiReaction: true,
+        },
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
     if (nextIndex < sortedQuestions.length) {
       const nextQ = sortedQuestions[nextIndex];
       setCurrentQuestionIndex(nextIndex);
-      setIsTyping(true);
+      setIsTyping(false);
 
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg_q_${nextQ.id}_${Date.now()}`,
-            sender: "bot",
-            text: nextQ.title,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            questionId: nextQ.id,
-          },
-        ]);
-      }, 400);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `msg_q_${nextQ.id}_${Date.now()}`,
+          sender: "bot",
+          text: nextQ.title,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          questionId: nextQ.id,
+        },
+      ]);
     } else {
+      setIsTyping(false);
       await completeForm(updatedAnswers);
     }
   };
@@ -332,9 +378,9 @@ export default function ChatbotWidget({
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm md:text-base leading-tight">
                 {botName}
               </h2>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Online
+                Gemini AI Concierge
               </span>
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[200px] md:max-w-xs">
@@ -353,7 +399,7 @@ export default function ChatbotWidget({
           <button
             onClick={resetChat}
             title="Restart conversation"
-            className="p-2 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition"
+            className="p-2 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -362,7 +408,7 @@ export default function ChatbotWidget({
             <button
               onClick={onClose}
               title="Close widget"
-              className="p-2 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition"
+              className="p-2 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition cursor-pointer"
             >
               ✕
             </button>
@@ -416,7 +462,15 @@ export default function ChatbotWidget({
                     : undefined
                 }
               >
-                <p className="whitespace-pre-wrap break-words">{msg.text}</p>
+                <p className="whitespace-pre-wrap break-words">
+                  {msg.isAiReaction && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded mr-1.5">
+                      <Sparkles className="w-3 h-3 text-indigo-500" />
+                      Gemini
+                    </span>
+                  )}
+                  {msg.text}
+                </p>
                 <div
                   className={`text-[10px] mt-1 text-right select-none ${
                     isBot
@@ -493,7 +547,7 @@ export default function ChatbotWidget({
             <div>
               <button
                 onClick={() => setShowSummary((prev) => !prev)}
-                className="flex items-center justify-between w-full text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 py-1.5 border-t border-zinc-200 dark:border-zinc-800 transition"
+                className="flex items-center justify-between w-full text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 py-1.5 border-t border-zinc-200 dark:border-zinc-800 transition cursor-pointer"
               >
                 <span>{showSummary ? "Hide your answers" : "Review your answers"}</span>
                 {showSummary ? (
@@ -535,7 +589,7 @@ export default function ChatbotWidget({
 
             <button
               onClick={resetChat}
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-200/70 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-200/70 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Submit another response
@@ -575,7 +629,7 @@ export default function ChatbotWidget({
                   <button
                     key={idx}
                     onClick={() => handleAnswer(opt)}
-                    className="flex items-center justify-between px-3.5 py-2.5 text-left text-xs md:text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition group active:scale-[0.99]"
+                    className="flex items-center justify-between px-3.5 py-2.5 text-left text-xs md:text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition group active:scale-[0.99] cursor-pointer"
                   >
                     <span>{opt}</span>
                     <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400" />
@@ -585,7 +639,7 @@ export default function ChatbotWidget({
               {!currentQuestion.required && (
                 <button
                   onClick={() => handleAnswer("")}
-                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 mt-2 block"
+                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 mt-2 block cursor-pointer"
                 >
                   Skip this question →
                 </button>
@@ -611,13 +665,13 @@ export default function ChatbotWidget({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => handleAnswer(true)}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 font-semibold text-zinc-800 dark:text-zinc-100 text-sm transition active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 font-semibold text-zinc-800 dark:text-zinc-100 text-sm transition active:scale-[0.98] cursor-pointer"
                 >
                   <span className="text-base">👍</span> Yes
                 </button>
                 <button
                   onClick={() => handleAnswer(false)}
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 font-semibold text-zinc-800 dark:text-zinc-100 text-sm transition active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 font-semibold text-zinc-800 dark:text-zinc-100 text-sm transition active:scale-[0.98] cursor-pointer"
                 >
                   <span className="text-base">👎</span> No
                 </button>
@@ -625,7 +679,7 @@ export default function ChatbotWidget({
               {!currentQuestion.required && (
                 <button
                   onClick={() => handleAnswer("")}
-                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 mt-2 block"
+                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 mt-2 block cursor-pointer"
                 >
                   Skip this question →
                 </button>
@@ -681,7 +735,7 @@ export default function ChatbotWidget({
                   disabled={
                     currentQuestion.required && !inputValue.trim()
                   }
-                  className="p-2.5 rounded-xl text-white font-medium transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:scale-95 flex items-center justify-center shrink-0"
+                  className="p-2.5 rounded-xl text-white font-medium transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:scale-95 flex items-center justify-center shrink-0 cursor-pointer"
                   style={{ backgroundColor: primaryColor }}
                 >
                   <Send className="w-4 h-4" />
@@ -693,7 +747,7 @@ export default function ChatbotWidget({
                 {!currentQuestion.required && (
                   <button
                     onClick={() => handleAnswer("")}
-                    className="hover:underline text-zinc-500"
+                    className="hover:underline text-zinc-500 cursor-pointer"
                   >
                     Skip question
                   </button>
