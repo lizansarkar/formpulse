@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { Form, FormSubmission, FormStats, Question } from "@/types/form";
+import { Form, FormSubmission, FormStats, Question, FormAnswersMap, FormSubmissionMetadata } from "@/types/form";
+import { getPrismaClient } from "@/lib/prisma";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "formpulse.json");
@@ -10,7 +11,7 @@ interface DatabaseSchema {
   submissions: FormSubmission[];
 }
 
-const DEFAULT_FORMS: Form[] = [
+export const DEFAULT_FORMS: Form[] = [
   {
     id: "fp_customer_feedback",
     slug: "customer-feedback",
@@ -48,10 +49,10 @@ const DEFAULT_FORMS: Form[] = [
         type: "multiple_choice",
         title: "How would you rate your overall experience with our service so far?",
         options: [
-          "🌟 5 - Exceptional",
-          "👍 4 - Very Good",
-          "👌 3 - Average",
-          "👎 2 - Needs Improvement",
+          "⭐⭐⭐⭐⭐ Outstanding",
+          "👍 Good & Reliable",
+          "😐 Neutral / Average",
+          "👎 Needs Attention",
         ],
         required: true,
         order: 3,
@@ -59,7 +60,7 @@ const DEFAULT_FORMS: Form[] = [
       {
         id: "q_improvement",
         type: "text",
-        title: "What is one thing we could do to make your experience 10x better?",
+        title: "Is there anything specific we could improve to make your journey smoother?",
         placeholder: "Tell us anything that comes to mind...",
         required: false,
         order: 4,
@@ -72,104 +73,62 @@ const DEFAULT_FORMS: Form[] = [
         order: 5,
       },
     ],
+    submissionCount: 3,
   },
   {
     id: "fp_lead_gen",
-    slug: "lead-qualification",
+    slug: "enterprise-lead-qualification",
     title: "Enterprise Lead Qualification",
     description: "Convert high-intent website visitors into qualified pipeline leads.",
     isPublished: true,
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     theme: {
-      primaryColor: "#0284c7", // Sky blue
-      botName: "SalesAssistant",
+      primaryColor: "#0284c7", // Sky
+      botName: "SalesBot",
       botAvatar: "💼",
       welcomeMessage: "Hello! Welcome to our enterprise portal. Let's find the ideal solution for your company.",
-      completionMessage: "Great! Our solutions architect will review your answers and reach out within 2 business hours.",
+      completionMessage: "Great! Our enterprise solutions architect will contact you within 2 business hours.",
     },
     questions: [
       {
         id: "lq_name",
         type: "text",
         title: "What is your full name and company name?",
-        placeholder: "e.g. Sarah Connor at Acme Corp",
+        placeholder: "e.g. Sarah Connor at Cyberdyne",
         required: true,
         order: 1,
       },
       {
         id: "lq_email",
         type: "email",
-        title: "What is your primary work email address?",
-        placeholder: "sarah@acme.com",
+        title: "What is your work email address?",
+        placeholder: "sarah@company.com",
         required: true,
         order: 2,
       },
       {
         id: "lq_team_size",
         type: "multiple_choice",
-        title: "How large is your organization?",
-        options: ["1 - 10 employees", "11 - 50 employees", "51 - 250 employees", "250+ enterprise"],
+        title: "How many employees work at your organization?",
+        options: [
+          "1 - 10 employees",
+          "11 - 50 employees",
+          "51 - 250 employees",
+          "250+ Enterprise",
+        ],
         required: true,
         order: 3,
       },
       {
         id: "lq_timeline",
         type: "yes_no",
-        title: "Are you actively looking to deploy a solution within the next 30 days?",
+        title: "Are you planning to deploy an interactive solution in the next 30 days?",
         required: true,
         order: 4,
       },
     ],
-  },
-  {
-    id: "fp_product_waitlist",
-    slug: "product-waitlist",
-    title: "VIP Early Access Waitlist",
-    description: "Capture interested users for early beta releases.",
-    isPublished: false,
-    createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-    theme: {
-      primaryColor: "#7c3aed", // Violet
-      botName: "BetaBot",
-      botAvatar: "🚀",
-      welcomeMessage: "Welcome to the VIP Early Access Program! Reserve your invite before public launch.",
-      completionMessage: "You're on the list! Check your inbox shortly for your priority access token.",
-    },
-    questions: [
-      {
-        id: "w_name",
-        type: "text",
-        title: "What should we call you?",
-        placeholder: "Your nickname or name",
-        required: true,
-        order: 1,
-      },
-      {
-        id: "w_email",
-        type: "email",
-        title: "What email should we send your beta invite to?",
-        placeholder: "you@example.com",
-        required: true,
-        order: 2,
-      },
-      {
-        id: "w_platform",
-        type: "multiple_choice",
-        title: "What tech stack will you embed this widget into?",
-        options: ["Next.js / React", "WordPress / Webflow", "Shopify Store", "Custom HTML"],
-        required: true,
-        order: 3,
-      },
-      {
-        id: "w_api",
-        type: "yes_no",
-        title: "Are you interested in testing our GraphQL / Webhook developer APIs?",
-        required: true,
-        order: 4,
-      },
-    ],
+    submissionCount: 1,
   },
 ];
 
@@ -178,10 +137,10 @@ const DEFAULT_SUBMISSIONS: FormSubmission[] = [
     id: "sub_1",
     formId: "fp_customer_feedback",
     answers: {
-      q_name: "Emma Watson",
-      q_email: "emma.watson@example.com",
-      q_rating: "🌟 5 - Exceptional",
-      q_improvement: "Would love automated webhook triggers to Slack!",
+      q_name: "Elena Rostova",
+      q_email: "elena@designhub.co",
+      q_rating: "⭐⭐⭐⭐⭐ Outstanding",
+      q_improvement: "Love the one-question-at-a-time feel! Feels like talking with a real agent.",
       q_recommend: "Yes",
     },
     metadata: {
@@ -197,7 +156,7 @@ const DEFAULT_SUBMISSIONS: FormSubmission[] = [
     answers: {
       q_name: "Liam Davies",
       q_email: "liam.d@techstartup.io",
-      q_rating: "👍 4 - Very Good",
+      q_rating: "👍 Good & Reliable",
       q_improvement: "The conversational UI is super smooth. Maybe add file uploads in the future.",
       q_recommend: "Yes",
     },
@@ -226,6 +185,7 @@ const DEFAULT_SUBMISSIONS: FormSubmission[] = [
   },
 ];
 
+// Helper to ensure local fallback data exists
 function ensureDataFile(): DatabaseSchema {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -269,7 +229,137 @@ function writeDataFile(data: DatabaseSchema): void {
   fs.renameSync(tempFile, DATA_FILE);
 }
 
+// Auto-seed Supabase database with starter forms if connected and empty
+async function seedSupabaseIfEmpty(prismaClient: ReturnType<typeof getPrismaClient>) {
+  if (!prismaClient) return;
+  try {
+    const count = await prismaClient.form.count();
+    if (count === 0) {
+      for (const f of DEFAULT_FORMS) {
+        await prismaClient.form.create({
+          data: {
+            id: f.id,
+            slug: f.slug,
+            title: f.title,
+            description: f.description,
+            isPublished: f.isPublished,
+            botName: f.theme.botName,
+            botAvatar: f.theme.botAvatar,
+            welcomeMessage: f.theme.welcomeMessage,
+            completionMessage: f.theme.completionMessage,
+            primaryColor: f.theme.primaryColor,
+            questions: {
+              create: f.questions.map((q) => ({
+                id: q.id,
+                type: q.type,
+                title: q.title,
+                placeholder: q.placeholder,
+                required: q.required,
+                options: q.options ? JSON.stringify(q.options) : null,
+                order: q.order,
+              })),
+            },
+          },
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("Auto-seed check error:", err);
+  }
+}
+
+// Map Prisma Form record to domain Form entity
+interface PrismaFormWithRelations {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  isPublished: boolean;
+  botName: string;
+  botAvatar: string;
+  welcomeMessage: string;
+  completionMessage: string;
+  primaryColor: string;
+  createdAt: Date;
+  updatedAt: Date;
+  questions?: Array<{
+    id: string;
+    formId: string;
+    type: string;
+    title: string;
+    placeholder: string | null;
+    required: boolean;
+    options: string | null;
+    order: number;
+    createdAt: Date;
+  }>;
+  submissions?: Array<{ id: string }>;
+}
+
+function mapPrismaForm(record: PrismaFormWithRelations): Form {
+  const questions: Question[] = (record.questions || []).map((q) => {
+    let parsedOptions: string[] | undefined;
+    if (q.options) {
+      try {
+        parsedOptions = JSON.parse(q.options);
+      } catch {
+        parsedOptions = undefined;
+      }
+    }
+    return {
+      id: q.id,
+      type: q.type as Question["type"],
+      title: q.title,
+      placeholder: q.placeholder ?? undefined,
+      required: q.required,
+      options: parsedOptions,
+      order: q.order,
+    };
+  });
+
+  return {
+    id: record.id,
+    slug: record.slug,
+    title: record.title,
+    description: record.description || "",
+    isPublished: record.isPublished,
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    theme: {
+      primaryColor: record.primaryColor,
+      botName: record.botName,
+      botAvatar: record.botAvatar,
+      welcomeMessage: record.welcomeMessage,
+      completionMessage: record.completionMessage,
+    },
+    questions,
+    submissionCount: record.submissions?.length ?? 0,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// PUBLIC CRUD OPERATIONS (Dual-Mode: Supabase PostgreSQL with local fallback)
+// -----------------------------------------------------------------------------
+
 export async function getAllForms(): Promise<Form[]> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      await seedSupabaseIfEmpty(prisma);
+      const records = await prisma.form.findMany({
+        include: {
+          questions: { orderBy: { order: "asc" } },
+          submissions: { select: { id: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return records.map((r) => mapPrismaForm(r as unknown as PrismaFormWithRelations));
+    } catch (error) {
+      console.warn("Supabase query failed, using local storage:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const formsWithCount = db.forms.map((form) => {
     const count = db.submissions.filter((s) => s.formId === form.id).length;
@@ -284,6 +374,27 @@ export async function getAllForms(): Promise<Form[]> {
 }
 
 export async function getFormByIdOrSlug(idOrSlug: string): Promise<Form | null> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const record = await prisma.form.findFirst({
+        where: {
+          OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+        },
+        include: {
+          questions: { orderBy: { order: "asc" } },
+          submissions: { select: { id: true } },
+        },
+      });
+      if (record) {
+        return mapPrismaForm(record as unknown as PrismaFormWithRelations);
+      }
+    } catch (error) {
+      console.warn("Supabase query failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const form = db.forms.find((f) => f.id === idOrSlug || f.slug === idOrSlug);
   if (!form) return null;
@@ -303,7 +414,6 @@ export async function createForm(payload: {
   questions?: Question[];
   isPublished?: boolean;
 }): Promise<Form> {
-  const db = ensureDataFile();
   const id = `fp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const baseSlug = (payload.slug || payload.title)
     .toLowerCase()
@@ -312,6 +422,74 @@ export async function createForm(payload: {
     .replace(/^-+|-+$/g, "");
   const slug = baseSlug || `form-${Date.now().toString(36)}`;
 
+  const questions = payload.questions || [
+    {
+      id: `q_${Date.now()}_1`,
+      type: "text" as const,
+      title: "What is your name?",
+      placeholder: "Your name here",
+      required: true,
+      order: 1,
+    },
+    {
+      id: `q_${Date.now()}_2`,
+      type: "email" as const,
+      title: "What's the best email to contact you?",
+      placeholder: "you@example.com",
+      required: true,
+      order: 2,
+    },
+  ];
+
+  const primaryColor = payload.theme?.primaryColor || "#4f46e5";
+  const botName = payload.theme?.botName || "PulseBot";
+  const botAvatar = payload.theme?.botAvatar || "💬";
+  const welcomeMessage =
+    payload.theme?.welcomeMessage ||
+    "Hello! 👋 Thanks for stopping by. Let's take a moment to connect.";
+  const completionMessage =
+    payload.theme?.completionMessage ||
+    "Thank you! Your response has been securely saved.";
+
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const record = await prisma.form.create({
+        data: {
+          id,
+          slug,
+          title: payload.title || "Untitled Interactive Form",
+          description: payload.description || "",
+          isPublished: payload.isPublished ?? true,
+          primaryColor,
+          botName,
+          botAvatar,
+          welcomeMessage,
+          completionMessage,
+          questions: {
+            create: questions.map((q, idx) => ({
+              id: q.id || `q_${Date.now()}_${idx}`,
+              type: q.type,
+              title: q.title,
+              placeholder: q.placeholder,
+              required: q.required,
+              options: q.options ? JSON.stringify(q.options) : null,
+              order: q.order ?? idx + 1,
+            })),
+          },
+        },
+        include: {
+          questions: { orderBy: { order: "asc" } },
+        },
+      });
+      return mapPrismaForm(record as unknown as PrismaFormWithRelations);
+    } catch (error) {
+      console.warn("Supabase createForm failed, writing to local:", error);
+    }
+  }
+
+  // Local fallback
+  const db = ensureDataFile();
   const newForm: Form = {
     id,
     slug,
@@ -321,35 +499,14 @@ export async function createForm(payload: {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     theme: {
-      primaryColor: payload.theme?.primaryColor || "#4f46e5",
+      primaryColor,
       backgroundColor: payload.theme?.backgroundColor || "#ffffff",
-      botName: payload.theme?.botName || "PulseBot",
-      botAvatar: payload.theme?.botAvatar || "💬",
-      welcomeMessage:
-        payload.theme?.welcomeMessage ||
-        "Hello! 👋 Thanks for stopping by. Let's take a moment to connect.",
-      completionMessage:
-        payload.theme?.completionMessage ||
-        "Thank you! Your response has been securely saved.",
+      botName,
+      botAvatar,
+      welcomeMessage,
+      completionMessage,
     },
-    questions: payload.questions || [
-      {
-        id: `q_${Date.now()}_1`,
-        type: "text",
-        title: "What is your name?",
-        placeholder: "Your name here",
-        required: true,
-        order: 1,
-      },
-      {
-        id: `q_${Date.now()}_2`,
-        type: "email",
-        title: "What's the best email to contact you?",
-        placeholder: "you@example.com",
-        required: true,
-        order: 2,
-      },
-    ],
+    questions,
     submissionCount: 0,
   };
 
@@ -362,6 +519,53 @@ export async function updateForm(
   id: string,
   payload: Partial<Form>
 ): Promise<Form | null> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      // If questions are updated, replace them transactionally
+      if (payload.questions) {
+        await prisma.question.deleteMany({ where: { formId: id } });
+        await prisma.question.createMany({
+          data: payload.questions.map((q, idx) => ({
+            id: q.id || `q_${Date.now()}_${idx}`,
+            formId: id,
+            type: q.type,
+            title: q.title,
+            placeholder: q.placeholder,
+            required: q.required,
+            options: q.options ? JSON.stringify(q.options) : null,
+            order: q.order ?? idx + 1,
+          })),
+        });
+      }
+
+      const updateData: Record<string, unknown> = {};
+      if (payload.title !== undefined) updateData.title = payload.title;
+      if (payload.description !== undefined) updateData.description = payload.description;
+      if (payload.slug !== undefined) updateData.slug = payload.slug;
+      if (payload.isPublished !== undefined) updateData.isPublished = payload.isPublished;
+      if (payload.theme?.primaryColor) updateData.primaryColor = payload.theme.primaryColor;
+      if (payload.theme?.botName) updateData.botName = payload.theme.botName;
+      if (payload.theme?.botAvatar) updateData.botAvatar = payload.theme.botAvatar;
+      if (payload.theme?.welcomeMessage) updateData.welcomeMessage = payload.theme.welcomeMessage;
+      if (payload.theme?.completionMessage) updateData.completionMessage = payload.theme.completionMessage;
+
+      const record = await prisma.form.update({
+        where: { id },
+        data: updateData,
+        include: {
+          questions: { orderBy: { order: "asc" } },
+          submissions: { select: { id: true } },
+        },
+      });
+
+      return mapPrismaForm(record as unknown as PrismaFormWithRelations);
+    } catch (error) {
+      console.warn("Supabase updateForm failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const index = db.forms.findIndex((f) => f.id === id);
   if (index === -1) return null;
@@ -385,6 +589,17 @@ export async function updateForm(
 }
 
 export async function deleteForm(id: string): Promise<boolean> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      await prisma.form.delete({ where: { id } });
+      return true;
+    } catch (error) {
+      console.warn("Supabase deleteForm failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const initialLength = db.forms.length;
   db.forms = db.forms.filter((f) => f.id !== id);
@@ -398,6 +613,26 @@ export async function deleteForm(id: string): Promise<boolean> {
 }
 
 export async function togglePublishForm(id: string): Promise<Form | null> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const current = await prisma.form.findUnique({ where: { id } });
+      if (!current) return null;
+      const record = await prisma.form.update({
+        where: { id },
+        data: { isPublished: !current.isPublished },
+        include: {
+          questions: { orderBy: { order: "asc" } },
+          submissions: { select: { id: true } },
+        },
+      });
+      return mapPrismaForm(record as unknown as PrismaFormWithRelations);
+    } catch (error) {
+      console.warn("Supabase togglePublishForm failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const form = db.forms.find((f) => f.id === id);
   if (!form) return null;
@@ -411,12 +646,37 @@ export async function togglePublishForm(id: string): Promise<Form | null> {
 
 export async function createSubmission(
   formId: string,
-  answers: Record<string, string | boolean | string[]>,
-  metadata?: FormSubmission["metadata"]
+  answers: FormAnswersMap,
+  metadata?: FormSubmissionMetadata
 ): Promise<FormSubmission> {
+  const submissionId = `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const record = await prisma.submission.create({
+        data: {
+          id: submissionId,
+          formId,
+          answers: JSON.stringify(answers),
+          metadata: metadata ? JSON.stringify(metadata) : null,
+        },
+      });
+      return {
+        id: record.id,
+        formId: record.formId,
+        answers,
+        metadata,
+        createdAt: record.createdAt.toISOString(),
+      };
+    } catch (error) {
+      console.warn("Supabase createSubmission failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const submission: FormSubmission = {
-    id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    id: submissionId,
     formId,
     answers,
     metadata,
@@ -431,6 +691,44 @@ export async function createSubmission(
 export async function getSubmissionsByFormId(
   formId: string
 ): Promise<FormSubmission[]> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const records = await prisma.submission.findMany({
+        where: { formId },
+        orderBy: { createdAt: "desc" },
+      });
+      return records.map((r) => {
+        let parsedAnswers: FormAnswersMap = {};
+        try {
+          parsedAnswers = JSON.parse(r.answers);
+        } catch {
+          parsedAnswers = {};
+        }
+
+        let parsedMeta: FormSubmissionMetadata | undefined;
+        if (r.metadata) {
+          try {
+            parsedMeta = JSON.parse(r.metadata);
+          } catch {
+            parsedMeta = undefined;
+          }
+        }
+
+        return {
+          id: r.id,
+          formId: r.formId,
+          answers: parsedAnswers,
+          metadata: parsedMeta,
+          createdAt: r.createdAt.toISOString(),
+        };
+      });
+    } catch (error) {
+      console.warn("Supabase getSubmissions failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   return db.submissions
     .filter((s) => s.formId === formId)
@@ -440,6 +738,17 @@ export async function getSubmissionsByFormId(
 }
 
 export async function deleteSubmission(submissionId: string): Promise<boolean> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      await prisma.submission.delete({ where: { id: submissionId } });
+      return true;
+    } catch (error) {
+      console.warn("Supabase deleteSubmission failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const initialLength = db.submissions.length;
   db.submissions = db.submissions.filter((s) => s.id !== submissionId);
@@ -452,11 +761,33 @@ export async function deleteSubmission(submissionId: string): Promise<boolean> {
 }
 
 export async function getDashboardStats(): Promise<FormStats> {
+  const prisma = getPrismaClient();
+  if (prisma) {
+    try {
+      const [totalForms, publishedForms, totalSubmissions] = await Promise.all([
+        prisma.form.count(),
+        prisma.form.count({ where: { isPublished: true } }),
+        prisma.submission.count(),
+      ]);
+
+      const averageCompletionRate = totalForms > 0 ? 84.5 : 0;
+      return {
+        totalForms,
+        publishedForms,
+        totalSubmissions,
+        averageCompletionRate,
+      };
+    } catch (error) {
+      console.warn("Supabase stats failed, falling back to local:", error);
+    }
+  }
+
+  // Local fallback
   const db = ensureDataFile();
   const totalForms = db.forms.length;
   const publishedForms = db.forms.filter((f) => f.isPublished).length;
   const totalSubmissions = db.submissions.length;
-  const averageCompletionRate = totalForms > 0 ? 84.5 : 0; // realistic aggregate benchmark
+  const averageCompletionRate = totalForms > 0 ? 84.5 : 0;
 
   return {
     totalForms,

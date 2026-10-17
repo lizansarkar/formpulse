@@ -1,6 +1,61 @@
 {
   "forms": [
     {
+      "id": "fp_1792246882019_cyid3",
+      "slug": "inbound-lead-qualification",
+      "title": "Inbound Lead Qualification",
+      "description": "Capture sales inquiries directly from website visitors.",
+      "isPublished": true,
+      "createdAt": "2026-10-17T14:21:22.019Z",
+      "updatedAt": "2026-10-17T14:21:22.019Z",
+      "theme": {
+        "primaryColor": "#0284c7",
+        "backgroundColor": "#ffffff",
+        "botName": "SalesBot",
+        "botAvatar": "💼",
+        "welcomeMessage": "Welcome! Let's get you connected with the right specialist.",
+        "completionMessage": "Got it! Our enterprise team will follow up shortly."
+      },
+      "questions": [
+        {
+          "id": "q_1_1792246880936",
+          "type": "text",
+          "title": "What is your name and company name?",
+          "placeholder": "Jane Doe at Acme Inc",
+          "required": true,
+          "order": 1
+        },
+        {
+          "id": "q_2_1792246880936",
+          "type": "email",
+          "title": "What is your work email?",
+          "placeholder": "jane@acme.com",
+          "required": true,
+          "order": 2
+        },
+        {
+          "id": "q_3_1792246880936",
+          "type": "multiple_choice",
+          "title": "What is your project budget?",
+          "options": [
+            "Under $5,000",
+            "$5,000 - $20,000",
+            "$20,000+ Enterprise"
+          ],
+          "required": true,
+          "order": 3
+        },
+        {
+          "id": "q_4_1792246880936",
+          "type": "yes_no",
+          "title": "Are you ready to start within the next month?",
+          "required": true,
+          "order": 4
+        }
+      ],
+      "submissionCount": 0
+    },
+    {
       "id": "fp_1792164883998_nnprl",
       "slug": "product-feedback-suggestions",
       "title": "Product Feedback & Suggestions",
