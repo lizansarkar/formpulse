@@ -10,7 +10,7 @@ import {
   ExternalLink,
   ArrowRight,
   ShieldCheck,
-  Zap,
+  Flame,
   Globe,
   Sparkles,
 } from "lucide-react";
@@ -263,7 +263,7 @@ export default function EmbedDemoClient({
             </div>
 
             <div className="flex items-start gap-3">
-              <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <Flame className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <h5 className="font-semibold text-xs text-white">Instant Response Sync</h5>
                 <p className="text-[11px] text-slate-400">

@@ -228,17 +228,12 @@ export default function DashboardClient({
       <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:scale-105 transition">
-              ⚡
-            </div>
-            <div>
-              <span className="font-extrabold text-base tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                FormPulse
-                <span className="text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded">
-                  Dashboard
-                </span>
-              </span>
-            </div>
+            <span className="font-agbalumo text-2xl tracking-normal text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+              FormPulse
+            </span>
+            <span className="text-[10px] font-sans font-semibold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+              Dashboard
+            </span>
           </Link>
         </div>
 

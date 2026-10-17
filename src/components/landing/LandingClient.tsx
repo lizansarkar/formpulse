@@ -30,17 +30,12 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
       <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
-              ⚡
-            </div>
-            <div>
-              <span className="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
-                FormPulse
-                <span className="text-[10px] font-semibold bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-2 py-0.5 rounded-full">
-                  Interactive
-                </span>
-              </span>
-            </div>
+            <span className="font-agbalumo text-2xl tracking-normal text-white group-hover:text-indigo-300 transition">
+              FormPulse
+            </span>
+            <span className="text-[10px] font-sans font-semibold bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 px-2 py-0.5 rounded-full">
+              Interactive
+            </span>
           </Link>
 
           {/* Desktop Nav Links */}
@@ -94,7 +89,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
               <span className="text-slate-400">3x Higher Completion</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
+            <h1 className="font-agbalumo text-3xl sm:text-5xl lg:text-6xl text-white leading-[1.2] tracking-normal">
               Turn boring forms into{" "}
               <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">
                 interactive chatbots
@@ -225,7 +220,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
             <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
               Platform Features
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="font-agbalumo text-2xl sm:text-4xl text-white tracking-normal leading-snug">
               Everything you need for conversational data collection
             </h2>
             <p className="text-sm sm:text-base text-slate-400">
@@ -329,7 +324,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
             <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
               Simple 3-Step Workflow
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="font-agbalumo text-2xl sm:text-4xl text-white tracking-normal leading-snug">
               From idea to embedded chatbot in under 2 minutes
             </h2>
           </div>
@@ -387,7 +382,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
             <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
               Developer-Friendly Integration
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+            <h2 className="font-agbalumo text-2xl sm:text-3xl text-white tracking-normal leading-snug">
               Embed on any website with one line of code
             </h2>
           </div>
@@ -470,7 +465,7 @@ export default function Layout({ children }) {
       {/* CTA Bottom Banner */}
       <section className="py-20 px-4 sm:px-8 bg-gradient-to-b from-slate-950 via-indigo-950/40 to-slate-950">
         <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="font-agbalumo text-3xl sm:text-4xl text-white tracking-normal leading-snug">
             Ready to upgrade from static forms?
           </h2>
           <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
@@ -498,11 +493,8 @@ export default function Layout({ children }) {
       {/* Footer */}
       <footer className="border-t border-slate-900 py-12 px-4 sm:px-8 bg-slate-950 text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-              ⚡
-            </div>
-            <span className="font-bold text-white text-sm">FormPulse</span>
+          <div className="flex items-center gap-3">
+            <span className="font-agbalumo text-xl tracking-normal text-white">FormPulse</span>
             <span className="text-slate-600">© 2026 FormPulse. All rights reserved.</span>
           </div>
 

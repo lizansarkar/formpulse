@@ -101,6 +101,14 @@ export default function ResponsesClient({
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
+          <Link
+            href="/"
+            className="font-agbalumo text-lg tracking-normal text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition hidden sm:inline"
+            title="FormPulse Home"
+          >
+            FormPulse
+          </Link>
+          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
 
           <div>
             <div className="flex items-center gap-2">

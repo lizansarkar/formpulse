@@ -40,7 +40,7 @@ const COLOR_PRESETS = [
   { name: "Zinc", hex: "#27272a" },
 ];
 
-const AVATAR_PRESETS = ["✨", "🤖", "💼", "🚀", "💬", "⚡", "🎯", "🌟", "💡"];
+const AVATAR_PRESETS = ["✨", "🤖", "💼", "🚀", "💬", "📝", "🎯", "🌟", "💡"];
 
 const DEFAULT_BLANK_FORM: Form = {
   id: "",
@@ -280,6 +280,14 @@ export default function FormBuilder({
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
+          <Link
+            href="/"
+            className="font-agbalumo text-lg tracking-normal text-zinc-900 dark:text-zinc-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition hidden sm:inline"
+            title="FormPulse Home"
+          >
+            FormPulse
+          </Link>
+          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
           <div>
             <input
               type="text"

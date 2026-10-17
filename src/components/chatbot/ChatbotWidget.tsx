@@ -702,9 +702,12 @@ export default function ChatbotWidget({
 
       {/* Footer Branding */}
       <div className="py-2 px-4 bg-zinc-100/50 dark:bg-zinc-900/50 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between text-[11px] text-zinc-400">
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1.5">
           <Sparkles className="w-3 h-3 text-indigo-500" />
-          Powered by <strong className="font-semibold text-zinc-600 dark:text-zinc-300">FormPulse</strong>
+          <span>Powered by</span>
+          <strong className="font-agbalumo text-xs tracking-normal text-zinc-700 dark:text-zinc-200">
+            FormPulse
+          </strong>
         </span>
         <span>Secure & encrypted</span>
       </div>

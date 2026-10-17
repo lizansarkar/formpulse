@@ -1,4 +1,4 @@
-# ⚡ FormPulse — Interactive Form Builder with Chatbot Widget
+# FormPulse — Interactive Form Builder with Chatbot Widget
 
 > **Software Engineer Intern Project**  
 > Build interactive conversational forms, embed a floating chatbot widget on any website, collect responses in real time, and manage submissions through an analytics dashboard.
