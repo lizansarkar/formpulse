@@ -559,7 +559,9 @@ export default function ChatbotWidget({
           {currentQuestion.type === "multiple_choice" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
-                <span>Select an option:</span>
+                <span>
+                  Question {currentQuestionIndex + 1} of {totalQuestions} • Select an option:
+                </span>
                 {currentQuestion.required ? (
                   <span className="text-amber-600 dark:text-amber-400 font-medium">
                     Required
@@ -595,7 +597,9 @@ export default function ChatbotWidget({
           {currentQuestion.type === "yes_no" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
-                <span>Choose your answer:</span>
+                <span>
+                  Question {currentQuestionIndex + 1} of {totalQuestions} • Choose your answer:
+                </span>
                 {currentQuestion.required ? (
                   <span className="text-amber-600 dark:text-amber-400 font-medium">
                     Required

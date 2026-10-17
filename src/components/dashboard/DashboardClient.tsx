@@ -5,6 +5,7 @@ import { Form, FormStats, Question } from "@/types/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ShareEmbedModal from "@/components/dashboard/ShareEmbedModal";
+import CountUp from "@/components/common/CountUp";
 import {
   Plus,
   Search,
@@ -259,7 +260,7 @@ export default function DashboardClient({
                 Total Forms
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-                {stats.totalForms}
+                <CountUp end={stats.totalForms} />
               </div>
               <p className="text-xs text-zinc-500">
                 {stats.publishedForms} published, {stats.totalForms - stats.publishedForms} drafts
@@ -277,7 +278,7 @@ export default function DashboardClient({
                 Total Submissions
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-                {stats.totalSubmissions}
+                <CountUp end={stats.totalSubmissions} />
               </div>
               <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
                 <TrendingUp className="w-3 h-3" />
@@ -296,7 +297,7 @@ export default function DashboardClient({
                 Active Widgets
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-                {stats.publishedForms}
+                <CountUp end={stats.publishedForms} />
               </div>
               <p className="text-xs text-zinc-500">
                 Ready for website embeds
@@ -314,7 +315,7 @@ export default function DashboardClient({
                 Completion Rate
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-                {stats.averageCompletionRate}%
+                <CountUp end={stats.averageCompletionRate} decimals={1} suffix="%" />
               </div>
               <p className="text-xs text-zinc-500">
                 3.2x higher than static forms

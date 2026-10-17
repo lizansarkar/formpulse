@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Form } from "@/types/form";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
+import CountUp from "@/components/common/CountUp";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -177,7 +178,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-white">
-              84.5%
+              <CountUp end={84.5} decimals={1} suffix="%" />
             </div>
             <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
               Avg Completion Rate
@@ -186,7 +187,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
 
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-indigo-400">
-              3.2x
+              <CountUp end={3.2} decimals={1} suffix="x" />
             </div>
             <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
               More Submissions
@@ -195,7 +196,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
 
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400">
-              &lt; 60s
+              <CountUp end={60} prefix="< " suffix="s" />
             </div>
             <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
               Setup & Embed Time
@@ -204,7 +205,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
 
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400">
-              100%
+              <CountUp end={100} suffix="%" />
             </div>
             <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
               Mobile Responsive
