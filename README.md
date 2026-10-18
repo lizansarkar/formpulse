@@ -13,13 +13,15 @@
 
 ---
 
-## 🌐 Live URLs & Quick Links
+## 🌐 Live Production URLs & Quick Links
 
+- **🚀 Live Production Website**: [https://formpulse-woad.vercel.app](https://formpulse-woad.vercel.app)
+- **Visual Form Builder**: [https://formpulse-woad.vercel.app/builder](https://formpulse-woad.vercel.app/builder)
+- **Responses Analytics Dashboard**: [https://formpulse-woad.vercel.app/dashboard](https://formpulse-woad.vercel.app/dashboard)
+- **Live Embed Simulator**: [https://formpulse-woad.vercel.app/embed-demo](https://formpulse-woad.vercel.app/embed-demo)
+- **Public Standalone Form**: [https://formpulse-woad.vercel.app/f/customer-feedback](https://formpulse-woad.vercel.app/f/customer-feedback)
+- **Live Database Health Status**: [https://formpulse-woad.vercel.app/api/db-status](https://formpulse-woad.vercel.app/api/db-status)
 - **GitHub Repository**: [https://github.com/lizansarkar/formpulse](https://github.com/lizansarkar/formpulse)
-- **Live Embed Simulator**: [http://localhost:3000/embed-demo](http://localhost:3000/embed-demo) (or your Vercel deployment URL `/embed-demo`)
-- **Visual Form Builder**: [http://localhost:3000/builder](http://localhost:3000/builder)
-- **Responses Dashboard**: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-- **Live Database Status**: [http://localhost:3000/api/db-status](http://localhost:3000/api/db-status)
 - **Submission PDF Report**: [`FormPulse_Project_Submission_Report.pdf`](./FormPulse_Project_Submission_Report.pdf)
 
 ---

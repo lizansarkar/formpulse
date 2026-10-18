@@ -26,7 +26,7 @@ export default function EmbedDemoClient({
 }: EmbedDemoClientProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [baseUrl, setBaseUrl] = useState("https://formpulse.app");
+  const [baseUrl, setBaseUrl] = useState("https://formpulse-woad.vercel.app");
 
   useEffect(() => {
     if (typeof window !== "undefined") {

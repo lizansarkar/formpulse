@@ -28,9 +28,13 @@ export default function ShareEmbedModal({
     "script"
   );
   const [copied, setCopied] = useState(false);
-  const [origin] = useState(() =>
-    typeof window !== "undefined" ? window.location.origin : ""
-  );
+  const [origin, setOrigin] = useState("https://formpulse-woad.vercel.app");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   if (!isOpen || !form) return null;
 

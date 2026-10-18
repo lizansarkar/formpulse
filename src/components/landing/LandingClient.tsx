@@ -24,6 +24,13 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
   const [activeCodeTab, setActiveCodeTab] = useState<"script" | "react" | "iframe">(
     "script"
   );
+  const [liveOrigin, setLiveOrigin] = useState("https://formpulse-woad.vercel.app");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setLiveOrigin(window.location.origin);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
@@ -427,7 +434,7 @@ export default function LandingClient({ demoForm }: LandingClientProps) {
                 {activeCodeTab === "script" &&
                   `<!-- Add to your index.html or WordPress / Webflow footer -->
 <script
-  src="https://formpulse.app/embed.js"
+  src="${liveOrigin}/embed.js"
   data-form-id="fp_customer_feedback"
   data-color="#4f46e5"
   defer
@@ -441,7 +448,7 @@ export default function Layout({ children }) {
     <>
       {children}
       <Script
-        src="https://formpulse.app/embed.js"
+        src="${liveOrigin}/embed.js"
         data-form-id="fp_customer_feedback"
         strategy="lazyOnload"
       />
@@ -451,7 +458,7 @@ export default function Layout({ children }) {
                 {activeCodeTab === "iframe" &&
                   `<!-- Embed inline anywhere inside your page container -->
 <iframe
-  src="https://formpulse.app/embed/fp_customer_feedback"
+  src="${liveOrigin}/embed/fp_customer_feedback"
   width="100%"
   height="600px"
   frameborder="0"
