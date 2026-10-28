@@ -247,19 +247,13 @@ cd formpulse
 # 2. Install dependencies
 npm install
 
-# 3. Configure environment variables in .env
-DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-SUPABASE-ANON-KEY]"
-GEMINI_API_KEY="[YOUR-GOOGLE-GEMINI-API-KEY]"
-
-# 4. Sync Prisma Schema to Supabase
+# 3. Sync Prisma Schema to Supabase
 npx prisma db push
 
-# 5. Start dev server
+# 4. Start dev server
 npm run dev
 
-# 6. Verify production build
+# 5. Verify production build
 npm run build
 ```
 
